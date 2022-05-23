@@ -409,7 +409,7 @@ OgHttp2Session::ProcessBytesImpl(absl::string_view bytes) {
   RunOnExit r{[this]() { processing_bytes_ = false; }};
 
   if (options_.blackhole_data_on_connection_error && latched_error_) {
-    return bytes.size();
+    return static_cast<int64_t>(bytes.size());
   }
 
   int64_t preface_consumed = 0;
@@ -431,7 +431,7 @@ OgHttp2Session::ProcessBytesImpl(absl::string_view bytes) {
     if (!remaining_preface_.empty()) {
       QUICHE_VLOG(2) << "Preface bytes remaining: "
                      << remaining_preface_.size();
-      return min_size;
+      return static_cast<int64_t>(min_size);
     }
     preface_consumed = min_size;
   }
@@ -445,7 +445,7 @@ OgHttp2Session::ProcessBytesImpl(absl::string_view bytes) {
   if (latched_error_ || result < 0) {
     QUICHE_VLOG(2) << "ProcessBytes encountered an error.";
     if (options_.blackhole_data_on_connection_error) {
-      return bytes.size() + preface_consumed;
+      return static_cast<int64_t>(bytes.size() + preface_consumed);
     } else {
       return ProcessBytesError::kUnspecified;
     }
